@@ -10,7 +10,10 @@ const env = {
   adminEmail: process.env.ADMIN_EMAIL || 'admin@example.com',
   adminPassword: process.env.ADMIN_PASSWORD || 'admin123',
   adminName: process.env.ADMIN_NAME || 'Admin User',
-  geminiApiKey: process.env.GEMINI_API_KEY || ''
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+  chatGptApiKey: process.env.CHATGPT_API_KEY || '',
+  chatGptModel: process.env.CHATGPT_MODEL || 'gpt-4o-mini'
 };
 
 // Validate critical environment variables

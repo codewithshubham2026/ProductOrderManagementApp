@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api';
+import styles from '../styles/ui.module.css';
 
-// Create order page - allows users to create new orders
 export default function CreateOrder() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -89,49 +89,67 @@ export default function CreateOrder() {
   };
 
   return (
-    <div className="container">
-      <h1>Create Order</h1>
-      {error && <div className="alert alert-error">{error}</div>}
-
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
+    <div className={styles.container}>
+      <div className={`${styles.pageHeader} ${styles.compact}`}>
         <div>
-          <h2>Order Items</h2>
+          <p className={styles.eyebrow}>Checkout</p>
+          <h1 className={styles.pageTitle}>Create Order</h1>
+          <p className={styles.pageSubtitle}>
+            Review items and complete shipping details.
+          </p>
+        </div>
+      </div>
+      {error && <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>}
+
+      <div className={styles.twoColumn}>
+        <div>
+          <h2 className={styles.sectionTitle}>Order Items</h2>
           {cart.length === 0 ? (
-            <div className="card">
-              <p>Your cart is empty.</p>
-              <button className="btn btn-primary" onClick={() => navigate('/')}>
+            <div className={styles.card}>
+              <p className={styles.cartEmptyText}>
+                Your cart is empty.
+              </p>
+              <button
+                className={`${styles.buttonBase} ${styles.btn} ${styles.btnPrimary}`}
+                onClick={() => navigate('/')}
+              >
                 Browse Products
               </button>
             </div>
           ) : (
-            <div>
+            <div className={styles.cartList}>
               {cart.map((item) => {
                 const product = products[item.productId];
                 if (!product) return null;
                 return (
-                  <div key={item.productId} className="card" style={{ marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <div>
-                        <h3>{product.name}</h3>
-                        <p>${product.price.toFixed(2)} each</p>
+                  <div key={item.productId} className={styles.card}>
+                    <div className={styles.cartItem}>
+                      <div className={styles.cartItemInfo}>
+                        <h3 className={styles.cartItemTitle}>{product.name}</h3>
+                        <p className={styles.cartItemMeta}>
+                          ${product.price.toFixed(2)} each
+                        </p>
                       </div>
-                      <div>
+                      <div className={styles.cartActions}>
                         <input
+                          className={`${styles.inputBase} ${styles.cartQuantityInput}`}
                           type="number"
                           min="1"
+                          max={product.stock}
                           value={item.quantity}
-                          onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value))}
-                          style={{ width: '60px', marginRight: '1rem' }}
+                          onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 1)}
                         />
                         <button
-                          className="btn btn-danger"
+                          className={`${styles.buttonBase} ${styles.btn} ${styles.btnDanger}`}
                           onClick={() => removeFromCart(item.productId)}
                         >
                           Remove
                         </button>
                       </div>
                     </div>
-                    <p>Subtotal: ${(product.price * item.quantity).toFixed(2)}</p>
+                    <p className={styles.subtotal}>
+                      Subtotal: <strong>${(product.price * item.quantity).toFixed(2)}</strong>
+                    </p>
                   </div>
                 );
               })}
@@ -140,12 +158,13 @@ export default function CreateOrder() {
         </div>
 
         <div>
-          <div className="card">
-            <h2>Shipping Address</h2>
+          <div className={styles.card}>
+            <h2 className={styles.sectionTitle}>Shipping Address</h2>
             <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Street</label>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Street</label>
                 <input
+                  className={`${styles.inputBase} ${styles.inputField}`}
                   type="text"
                   value={shippingAddress.street}
                   onChange={(e) =>
@@ -154,9 +173,10 @@ export default function CreateOrder() {
                   required
                 />
               </div>
-              <div className="form-group">
-                <label>City</label>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>City</label>
                 <input
+                  className={`${styles.inputBase} ${styles.inputField}`}
                   type="text"
                   value={shippingAddress.city}
                   onChange={(e) =>
@@ -165,9 +185,10 @@ export default function CreateOrder() {
                   required
                 />
               </div>
-              <div className="form-group">
-                <label>State</label>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>State</label>
                 <input
+                  className={`${styles.inputBase} ${styles.inputField}`}
                   type="text"
                   value={shippingAddress.state}
                   onChange={(e) =>
@@ -176,9 +197,10 @@ export default function CreateOrder() {
                   required
                 />
               </div>
-              <div className="form-group">
-                <label>Zip Code</label>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Zip Code</label>
                 <input
+                  className={`${styles.inputBase} ${styles.inputField}`}
                   type="text"
                   value={shippingAddress.zipCode}
                   onChange={(e) =>
@@ -187,14 +209,15 @@ export default function CreateOrder() {
                   required
                 />
               </div>
-              <div style={{ marginTop: '1rem', padding: '1rem', background: '#f5f5f5', borderRadius: '4px' }}>
-                <h3>Total: ${calculateTotal().toFixed(2)}</h3>
+              <div className={styles.totalBox}>
+                <h3 className={styles.totalBoxTitle}>
+                  Total: ${calculateTotal().toFixed(2)}
+                </h3>
               </div>
               <button
                 type="submit"
-                className="btn btn-success"
+                className={`${styles.buttonBase} ${styles.btn} ${styles.btnSuccess} ${styles.btnBlock}`}
                 disabled={loading || cart.length === 0}
-                style={{ width: '100%', marginTop: '1rem' }}
               >
                 {loading ? 'Creating Order...' : 'Place Order'}
               </button>

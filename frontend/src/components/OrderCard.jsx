@@ -1,23 +1,55 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import styles from '../styles/ui.module.css';
 
-// Order card component - displays order information
 export default function OrderCard({ order }) {
+  const statusClassMap = {
+    pending: styles.statusPending,
+    processing: styles.statusProcessing,
+    shipped: styles.statusShipped,
+    delivered: styles.statusDelivered,
+    cancelled: styles.statusCancelled
+  };
+
   const getStatusClass = (status) => {
-    return `status-badge status-${status}`;
+    return `${styles.statusBadge} ${statusClassMap[status] || ''}`;
   };
 
   return (
-    <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3>Order #{order._id.slice(-6)}</h3>
-        <span className={getStatusClass(order.status)}>{order.status.toUpperCase()}</span>
+    <div className={styles.orderCardList}>
+      <div className={styles.orderCardTop}>
+        <div className={styles.orderCardId}>
+          <h3 className={styles.orderCardTitle}>
+            Order #{order._id.slice(-6).toUpperCase()}
+          </h3>
+        </div>
+        <span className={getStatusClass(order.status)}>
+          {order.status.toUpperCase()}
+        </span>
       </div>
-      <p><strong>Total:</strong> ${order.totalAmount.toFixed(2)}</p>
-      <p><strong>Items:</strong> {order.items.length}</p>
-      <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
-      <div style={{ marginTop: '1rem' }}>
-        <Link to={`/orders/${order._id}`} className="btn btn-primary">
+      <div className={styles.orderCardDetails}>
+        <div className={styles.orderDetailItem}>
+          <span className={styles.orderDetailLabel}>Total</span>
+          <span className={styles.orderDetailValue}>
+            ${order.totalAmount.toFixed(2)}
+          </span>
+        </div>
+        <div className={styles.orderDetailItem}>
+          <span className={styles.orderDetailLabel}>Items</span>
+          <span className={styles.orderDetailValue}>{order.items.length}</span>
+        </div>
+        <div className={styles.orderDetailItem}>
+          <span className={styles.orderDetailLabel}>Date</span>
+          <span className={styles.orderDetailValue}>
+            {new Date(order.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+      </div>
+      <div className={styles.orderCardAction}>
+        <Link
+          to={`/orders/${order._id}`}
+          className={`${styles.btn} ${styles.btnPrimary}`}
+        >
           View Details
         </Link>
       </div>

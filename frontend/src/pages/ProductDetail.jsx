@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
+import styles from '../styles/ui.module.css';
 
-// Product detail page - shows full product information and allows adding to cart/order
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -34,58 +34,80 @@ export default function ProductDetail() {
   };
 
   if (loading) {
-    return <div className="container loading">Loading...</div>;
+    return <div className={`${styles.container} ${styles.loading}`}>Loading...</div>;
   }
 
   if (error || !product) {
     return (
-      <div className="container">
-        <div className="alert alert-error">{error || 'Product not found'}</div>
+      <div className={styles.container}>
+        <div className={`${styles.alert} ${styles.alertError}`}>
+          {error || 'Product not found'}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
+    <div className={styles.container}>
+      <div className={`${styles.pageHeader} ${styles.compact}`}>
         <div>
-          {product.image && (
-            <img
-              src={product.image}
-              alt={product.name}
-              style={{ width: '100%', borderRadius: '8px' }}
-            />
-          )}
+          <p className={styles.eyebrow}>Product</p>
+          <h1 className={styles.pageTitle}>{product.name}</h1>
+          <span className={styles.badge}>{product.category}</span>
         </div>
-        <div>
-          <h1>{product.name}</h1>
-          <span className="category">{product.category}</span>
-          <p className="price" style={{ fontSize: '2rem', margin: '1rem 0' }}>
-            ${product.price.toFixed(2)}
+      </div>
+      <div className={styles.productDetailGrid}>
+        <div className={styles.card}>
+          <div className={`${styles.productImage} ${styles.large}`}>
+            <img
+              src={
+                product.image ||
+                'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=80'
+              }
+              alt={product.name}
+              className={styles.productImageImg}
+            />
+          </div>
+        </div>
+        <div className={styles.card}>
+          <div className={styles.priceRow}>
+            <span className={styles.productPrice}>${product.price.toFixed(2)}</span>
+            <span
+              className={`${styles.statusPill} ${
+                product.stock > 0 ? styles.inStock : styles.outStock
+              }`}
+            >
+              {product.stock > 0 ? 'In stock' : 'Out of stock'}
+            </span>
+          </div>
+          <p className={styles.productDescription}>{product.description}</p>
+          <p className={styles.muted}>
+            Stock: {product.stock} units available
           </p>
-          <p style={{ marginBottom: '1rem' }}>{product.description}</p>
-          <p><strong>Stock:</strong> {product.stock} units available</p>
 
           {product.stock > 0 ? (
-            <div style={{ marginTop: '2rem' }}>
-              <div className="form-group">
-                <label>Quantity</label>
+            <div className={styles.orderSummary}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Quantity</label>
                 <input
+                  className={`${styles.inputBase} ${styles.inputField}`}
                   type="number"
                   min="1"
                   max={product.stock}
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  style={{ width: '100px' }}
                 />
               </div>
-              <button className="btn btn-success" onClick={handleAddToOrder}>
+              <button
+                className={`${styles.buttonBase} ${styles.btn} ${styles.btnSuccess}`}
+                onClick={handleAddToOrder}
+              >
                 Add to Order
               </button>
             </div>
           ) : (
-            <div className="alert alert-error" style={{ marginTop: '1rem' }}>
-              Out of stock
+            <div className={styles.orderSummary}>
+              <div className={`${styles.alert} ${styles.alertError}`}>Out of stock</div>
             </div>
           )}
         </div>

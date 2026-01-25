@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
-import OrderCard from '../components/OrderCard';
+import Select from '../components/Select';
+import styles from '../styles/ui.module.css';
 
-// Admin orders page - shows all orders and allows status updates
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [pagination, setPagination] = useState({});
@@ -14,6 +14,35 @@ export default function AdminOrders() {
   useEffect(() => {
     fetchOrders();
   }, [page, statusFilter]);
+
+  const pageNumbers = useMemo(() => {
+    const totalPages = pagination.pages || 0;
+    if (totalPages <= 1) return [];
+    const range = [];
+    const start = Math.max(1, page - 2);
+    const end = Math.min(totalPages, page + 2);
+    for (let i = start; i <= end; i += 1) {
+      range.push(i);
+    }
+    return range;
+  }, [pagination.pages, page]);
+
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'processing', label: 'Processing' },
+    { value: 'shipped', label: 'Shipped' },
+    { value: 'delivered', label: 'Delivered' },
+    { value: 'cancelled', label: 'Cancelled' }
+  ];
+
+  const statusClassMap = {
+    pending: styles.statusPending,
+    processing: styles.statusProcessing,
+    shipped: styles.statusShipped,
+    delivered: styles.statusDelivered,
+    cancelled: styles.statusCancelled
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -42,87 +71,132 @@ export default function AdminOrders() {
   };
 
   if (loading && orders.length === 0) {
-    return <div className="container loading">Loading orders...</div>;
+    return <div className={`${styles.container} ${styles.loading}`}>Loading orders...</div>;
   }
 
   return (
-    <div className="container">
-      <h1>All Orders</h1>
-      {error && <div className="alert alert-error">{error}</div>}
+    <div className={styles.container}>
+      <div className={`${styles.pageHeader} ${styles.compact}`}>
+        <div>
+          <p className={styles.eyebrow}>Admin</p>
+          <h1 className={styles.pageTitle}>All Orders</h1>
+          <p className={styles.pageSubtitle}>
+            Monitor fulfillment, update statuses, and assist customers.
+          </p>
+        </div>
+      </div>
+      {error && <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>}
 
-      <div className="search-filter" style={{ marginBottom: '2rem' }}>
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
-        >
-          <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
+      <div className={styles.adminFilterCard}>
+        <div className={styles.filterGroup}>
+          <label className={styles.filterLabel}>Status</label>
+          <Select
+            value={statusFilter}
+            onChange={(value) => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
+            options={statusOptions}
+            placeholder="All Statuses"
+            ariaLabel="Filter by status"
+          />
+        </div>
       </div>
 
       {orders.length === 0 ? (
-        <div className="card">
-          <p>No orders found.</p>
+        <div className={styles.card}>
+          <p className={styles.emptyStateText}>
+            No orders found.
+          </p>
         </div>
       ) : (
-        <>
+        <div className={styles.adminOrdersList}>
           {orders.map((order) => (
-            <div key={order._id} className="card" style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <div>
-                  <h3>Order #{order._id.slice(-6)}</h3>
-                  <p><strong>Customer:</strong> {order.user.name} ({order.user.email})</p>
-                  <p><strong>Total:</strong> ${order.totalAmount.toFixed(2)}</p>
-                  <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleString()}</p>
+            <div key={order._id} className={styles.adminOrderCard}>
+              <div className={styles.adminOrderHeader}>
+                <div className={styles.adminOrderInfo}>
+                  <h3 className={styles.adminOrderId}>
+                    Order #{order._id.slice(-6).toUpperCase()}
+                  </h3>
+                  <div className={styles.adminOrderMeta}>
+                    <div className={styles.adminMetaItem}>
+                      <span className={styles.adminMetaLabel}>Customer</span>
+                      <span className={styles.adminMetaValue}>
+                        {order.user.name} ({order.user.email})
+                      </span>
+                    </div>
+                    <div className={styles.adminMetaItem}>
+                      <span className={styles.adminMetaLabel}>Total</span>
+                      <span className={styles.adminMetaValue}>
+                        ${order.totalAmount.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className={styles.adminMetaItem}>
+                      <span className={styles.adminMetaLabel}>Date</span>
+                      <span className={styles.adminMetaValue}>
+                        {new Date(order.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className={styles.adminMetaItem}>
+                      <span className={styles.adminMetaLabel}>Items</span>
+                      <span className={styles.adminMetaValue}>{order.items.length}</span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className={`status-badge status-${order.status}`}>
-                    {order.status.toUpperCase()}
-                  </span>
-                  <div style={{ marginTop: '1rem' }}>
-                    <label>Update Status:</label>
-                    <select
-                      value={order.status}
-                      onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
-                      style={{ marginLeft: '0.5rem', padding: '0.5rem' }}
+                <div className={styles.adminOrderActions}>
+                  <div className={styles.adminStatusBadgeWrapper}>
+                    <span
+                      className={`${styles.statusBadge} ${statusClassMap[order.status] || ''}`}
                     >
-                      <option value="pending">Pending</option>
-                      <option value="processing">Processing</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
+                      {order.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className={styles.adminStatusControl}>
+                    <label className={styles.adminStatusLabel}>Update Status</label>
+                    <Select
+                      value={order.status}
+                      onChange={(value) => handleStatusUpdate(order._id, value)}
+                      options={statusOptions.filter((option) => option.value)}
+                      placeholder="Update Status"
+                      ariaLabel="Update status"
+                    />
                   </div>
                 </div>
               </div>
-              <p><strong>Items:</strong> {order.items.length}</p>
             </div>
           ))}
 
-          {pagination.pages > 1 && (
-            <div className="pagination">
-              <button onClick={() => setPage(page - 1)} disabled={page === 1}>
-                Previous
-              </button>
-              <span>
-                Page {pagination.page} of {pagination.pages}
-              </span>
-              <button
-                onClick={() => setPage(page + 1)}
-                disabled={page === pagination.pages}
-              >
-                Next
-              </button>
-            </div>
-          )}
-        </>
+        </div>
+      )}
+
+      {pagination.pages > 1 && (
+        <div className={styles.pagination}>
+          <button
+            onClick={() => setPage(page - 1)}
+            disabled={page === 1}
+            className={`${styles.buttonBase} ${styles.paginationButton}`}
+          >
+            Previous
+          </button>
+          {pageNumbers.map((pageNumber) => (
+            <button
+              key={pageNumber}
+              onClick={() => setPage(pageNumber)}
+              className={`${styles.buttonBase} ${styles.paginationButton}${
+                pageNumber === page ? ` ${styles.paginationButtonActive}` : ''
+              }`}
+            >
+              {pageNumber}
+            </button>
+          ))}
+          <button
+            onClick={() => setPage(page + 1)}
+            disabled={page === pagination.pages}
+            className={`${styles.buttonBase} ${styles.paginationButton}`}
+          >
+            Next
+          </button>
+        </div>
       )}
     </div>
   );

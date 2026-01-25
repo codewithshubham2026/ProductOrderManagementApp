@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
+import styles from '../styles/ui.module.css';
 
-// Admin products management page - allows admin to create, update, and delete products
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -76,10 +77,6 @@ export default function AdminProducts() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) {
-      return;
-    }
-
     try {
       await api.delete(`/api/products/${id}`);
       setSuccess('Product deleted successfully');
@@ -90,45 +87,59 @@ export default function AdminProducts() {
   };
 
   if (loading) {
-    return <div className="container loading">Loading...</div>;
+    return <div className={`${styles.container} ${styles.loading}`}>Loading...</div>;
   }
 
   return (
-    <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>Manage Products</h1>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
+    <div className={styles.container}>
+      <div className={`${styles.pageHeader} ${styles.compact}`}>
+        <div>
+          <p className={styles.eyebrow}>Admin</p>
+          <h1 className={styles.pageTitle}>Manage Products</h1>
+          <p className={styles.pageSubtitle}>Create, update, and curate your catalog.</p>
+        </div>
+        <button
+          className={`${styles.buttonBase} ${styles.btn} ${styles.btnPrimary}`}
+          onClick={() => setShowForm(!showForm)}
+        >
           {showForm ? 'Cancel' : 'Add New Product'}
         </button>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+      {error && <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>}
+      {success && (
+        <div className={`${styles.alert} ${styles.alertSuccess}`}>{success}</div>
+      )}
 
       {showForm && (
-        <div className="card" style={{ marginBottom: '2rem' }}>
-          <h2>{editingProduct ? 'Edit Product' : 'New Product'}</h2>
+        <div className={styles.card}>
+          <h2 className={styles.sectionTitle}>
+            {editingProduct ? 'Edit Product' : 'New Product'}
+          </h2>
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Name</label>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Name</label>
               <input
+                className={`${styles.inputBase} ${styles.inputField}`}
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
               />
             </div>
-            <div className="form-group">
-              <label>Description</label>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Description</label>
               <textarea
+                className={`${styles.textareaBase} ${styles.textareaField}`}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
               />
             </div>
-            <div className="form-group">
-              <label>Price</label>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Price</label>
               <input
+                className={`${styles.inputBase} ${styles.inputField}`}
                 type="number"
                 step="0.01"
                 min="0"
@@ -137,18 +148,20 @@ export default function AdminProducts() {
                 required
               />
             </div>
-            <div className="form-group">
-              <label>Category</label>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Category</label>
               <input
+                className={`${styles.inputBase} ${styles.inputField}`}
                 type="text"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 required
               />
             </div>
-            <div className="form-group">
-              <label>Stock</label>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Stock</label>
               <input
+                className={`${styles.inputBase} ${styles.inputField}`}
                 type="number"
                 min="0"
                 value={formData.stock}
@@ -156,39 +169,60 @@ export default function AdminProducts() {
                 required
               />
             </div>
-            <div className="form-group">
-              <label>Image URL (optional)</label>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Image URL (optional)</label>
               <input
+                className={`${styles.inputBase} ${styles.inputField}`}
                 type="url"
                 value={formData.image}
                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
               />
             </div>
-            <button type="submit" className="btn btn-success">
+            <button
+              type="submit"
+              className={`${styles.buttonBase} ${styles.btn} ${styles.btnSuccess}`}
+            >
               {editingProduct ? 'Update Product' : 'Create Product'}
             </button>
           </form>
         </div>
       )}
 
-      <div className="product-grid">
+      <div className={styles.productGrid}>
         {products.map((product) => (
-          <div key={product._id} className="product-card">
-            {product.image && <img src={product.image} alt={product.name} />}
-            <h3>{product.name}</h3>
-            <p className="price">${product.price.toFixed(2)}</p>
-            <p><strong>Category:</strong> {product.category}</p>
-            <p><strong>Stock:</strong> {product.stock}</p>
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+          <div key={product._id} className={styles.productCard}>
+            <div className={styles.productImage}>
+              <img
+                src={
+                  product.image ||
+                  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80'
+                }
+                alt={product.name}
+                className={styles.productImageImg}
+              />
+            </div>
+            <div className={styles.productMeta}>
+              <span className={styles.badge}>{product.category}</span>
+              <span
+                className={`${styles.statusPill} ${
+                  product.stock > 0 ? styles.inStock : styles.outStock
+                }`}
+              >
+                {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+              </span>
+            </div>
+            <h3 className={styles.productTitle}>{product.name}</h3>
+            <p className={styles.productPrice}>${product.price.toFixed(2)}</p>
+            <div className={`${styles.productActions} ${styles.productActionsRow}`}>
               <button
-                className="btn btn-primary"
+                className={`${styles.buttonBase} ${styles.btn} ${styles.btnPrimary}`}
                 onClick={() => handleEdit(product)}
               >
                 Edit
               </button>
               <button
-                className="btn btn-danger"
-                onClick={() => handleDelete(product._id)}
+                className={`${styles.buttonBase} ${styles.btn} ${styles.btnDanger}`}
+                onClick={() => setPendingDeleteId(product._id)}
               >
                 Delete
               </button>
@@ -196,6 +230,46 @@ export default function AdminProducts() {
           </div>
         ))}
       </div>
+
+      {pendingDeleteId && (
+        <div className={styles.modalBackdrop} role="presentation">
+          <div className={styles.modal} role="dialog" aria-modal="true">
+            <div className={styles.modalHeader}>
+              <h3>Delete product?</h3>
+              <button
+                type="button"
+                className={`${styles.buttonBase} ${styles.btn} ${styles.btnGhost} ${styles.modalClose}`}
+                onClick={() => setPendingDeleteId(null)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <p className={styles.modalBody}>
+              This action cannot be undone. The product will be permanently removed.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={`${styles.buttonBase} ${styles.btn} ${styles.btnGhost}`}
+                onClick={() => setPendingDeleteId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={`${styles.buttonBase} ${styles.btn} ${styles.btnDanger}`}
+                onClick={() => {
+                  handleDelete(pendingDeleteId);
+                  setPendingDeleteId(null);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

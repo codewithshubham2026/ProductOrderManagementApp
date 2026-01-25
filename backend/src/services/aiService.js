@@ -1,22 +1,60 @@
+const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const env = require('../config/env');
 const Product = require('../models/Product');
 
-// Initialize Gemini AI client
-let genAI = null;
-if (env.geminiApiKey) {
-  genAI = new GoogleGenerativeAI(env.geminiApiKey);
+const geminiClient = env.geminiApiKey ? new GoogleGenerativeAI(env.geminiApiKey) : null;
+
+async function askChatGpt(prompt) {
+  const response = await axios.post(
+    'https://api.openai.com/v1/chat/completions',
+    {
+      model: env.chatGptModel,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      max_tokens: 300
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${env.chatGptApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000
+    }
+  );
+
+  const answer = response.data.choices?.[0]?.message?.content || 'No response';
+  return answer.trim();
+}
+
+async function askAi(prompt) {
+  const cleanPrompt = prompt.trim();
+
+  if (geminiClient) {
+    try {
+      const model = geminiClient.getGenerativeModel({ model: env.geminiModel });
+      const result = await model.generateContent(cleanPrompt);
+      const text = result.response?.text?.() || 'No response';
+      return text.trim();
+    } catch (error) {
+      if (env.chatGptApiKey) {
+        return askChatGpt(cleanPrompt);
+      }
+      throw error;
+    }
+  }
+
+  if (env.chatGptApiKey) {
+    return askChatGpt(cleanPrompt);
+  }
+
+  return 'Demo response: add GEMINI_API_KEY or CHATGPT_API_KEY in backend/.env to get live AI answers.';
 }
 
 // Get AI response about products
 async function getProductAssistantResponse(userQuestion, productId = null) {
-  if (!genAI) {
-    throw new Error('AI service is not configured. Please set GEMINI_API_KEY in environment variables.');
-  }
-
   let productContext = '';
 
-  // If product ID is provided, fetch product details for context
   if (productId) {
     const product = await Product.findById(productId);
     if (product) {
@@ -31,20 +69,16 @@ Product Information:
     }
   }
 
-  // Create prompt for AI
-  const prompt = `You are a helpful product assistant for an e-commerce store. 
+  const prompt = `You are a helpful product assistant for an e-commerce store.
 ${productContext ? productContext : 'You can answer questions about products in general.'}
 
 User Question: ${userQuestion}
 
-Please provide a clear, helpful, and concise answer. If the question is about a specific product, use the product information provided. 
+Please provide a clear, helpful, and concise answer. If the question is about a specific product, use the product information provided.
 Keep your response friendly and informative, suitable for customers who may not be tech-savvy.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    return await askAi(prompt);
   } catch (error) {
     throw new Error(`AI service error: ${error.message}`);
   }
