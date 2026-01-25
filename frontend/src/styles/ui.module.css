@@ -870,7 +870,7 @@ body {
   transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease);
   max-height: 280px;
   overflow-y: auto;
-  z-index: 9999 !important;
+  z-index: 9 !important;
 }
 
 .selectList.open {
