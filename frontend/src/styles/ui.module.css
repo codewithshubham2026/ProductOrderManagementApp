@@ -1637,6 +1637,33 @@ body {
   margin: 12px 0;
 }
 
+.productDetailPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 360px;
+}
+
+.stockLine {
+  font-weight: 500;
+}
+
+.orderSummary {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.quantityInput {
+  font-size: 1.05rem;
+}
+
+.orderSummary .btn {
+  align-self: flex-start;
+  min-width: 180px;
+}
+
 
 .twoColumn {
   display: grid;

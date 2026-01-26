@@ -14,6 +14,7 @@ export default function OrderCard({ order }) {
   const getStatusClass = (status) => {
     return `${styles.statusBadge} ${statusClassMap[status] || ''}`;
   };
+  const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div className={styles.orderCardList}>
@@ -36,7 +37,7 @@ export default function OrderCard({ order }) {
         </div>
         <div className={styles.orderDetailItem}>
           <span className={styles.orderDetailLabel}>Items</span>
-          <span className={styles.orderDetailValue}>{order.items.length}</span>
+          <span className={styles.orderDetailValue}>{totalItems}</span>
         </div>
         <div className={styles.orderDetailItem}>
           <span className={styles.orderDetailLabel}>Date</span>

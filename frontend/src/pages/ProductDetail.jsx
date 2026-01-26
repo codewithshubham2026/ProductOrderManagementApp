@@ -69,7 +69,7 @@ export default function ProductDetail() {
             />
           </div>
         </div>
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.productDetailPanel}`}>
           <div className={styles.priceRow}>
             <span className={styles.productPrice}>${product.price.toFixed(2)}</span>
             <span
@@ -81,7 +81,7 @@ export default function ProductDetail() {
             </span>
           </div>
           <p className={styles.productDescription}>{product.description}</p>
-          <p className={styles.muted}>
+          <p className={`${styles.muted} ${styles.stockLine}`}>
             Stock: {product.stock} units available
           </p>
 
@@ -90,7 +90,7 @@ export default function ProductDetail() {
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Quantity</label>
                 <input
-                  className={`${styles.inputBase} ${styles.inputField}`}
+                  className={`${styles.inputBase} ${styles.inputField} ${styles.quantityInput}`}
                   type="number"
                   min="1"
                   max={product.stock}

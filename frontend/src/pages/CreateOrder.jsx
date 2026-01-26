@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api';
 import styles from '../styles/ui.module.css';
@@ -6,6 +6,7 @@ import styles from '../styles/ui.module.css';
 export default function CreateOrder() {
   const navigate = useNavigate();
   const location = useLocation();
+  const didSeedFromProduct = useRef(false);
   const [cart, setCart] = useState([]);
   const [products, setProducts] = useState({});
   const [shippingAddress, setShippingAddress] = useState({
@@ -18,8 +19,10 @@ export default function CreateOrder() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // If coming from product detail page, add that product to cart
+    // If coming from product detail page, add that product to cart once
+    if (didSeedFromProduct.current) return;
     if (location.state?.productId) {
+      didSeedFromProduct.current = true;
       addToCart(location.state.productId, location.state.quantity);
     }
   }, [location.state]);
