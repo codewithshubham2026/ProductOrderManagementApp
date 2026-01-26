@@ -2,7 +2,7 @@
 
 ## Pre-Basic Setup
 
-### 1. MERN Wallpaper (New Laptop).
+### 1. New MERN Wallpaper (New Laptop).
 ### 2. Code Editor (Ready).
 ### 3. Browser (Ready).
 ### 4. Bookmarks (Ready).
