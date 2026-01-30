@@ -70,6 +70,9 @@ async function updateProduct(productId, { name, description, price, category, st
   const product = await Product.findByIdAndUpdate(
     productId,
     { name, description, price, category, stock, image },
+    // { new: true, runValidators: true } means:
+    // - new: true --> Return the modified (updated) document instead of the original.
+    // - runValidators: true --> Ensure the model's validation rules are applied when updating.
     { new: true, runValidators: true }
   );
 
