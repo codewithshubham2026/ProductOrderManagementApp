@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import styles from '../styles/ui.module.css';
 
@@ -7,6 +7,8 @@ export default function AdminProducts() {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -19,14 +21,22 @@ export default function AdminProducts() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [page]);
 
   const fetchProducts = async () => {
     try {
-      const { data } = await api.get('/api/products');
+      const { data } = await api.get('/api/products', { params: { page, limit: 12 } });
       setProducts(data.products);
+      setPagination(data.pagination);
+      if (data.pagination.pages > 0 && page > data.pagination.pages) {
+        setPage(data.pagination.pages);
+      }
     } catch (err) {
       setError('Failed to load products');
     } finally {
@@ -58,6 +68,7 @@ export default function AdminProducts() {
         image: ''
       });
       fetchProducts();
+      scrollToTop();
     } catch (err) {
       setError(err.response?.data?.message || 'Operation failed');
     }
@@ -74,6 +85,7 @@ export default function AdminProducts() {
       image: product.image || ''
     });
     setShowForm(true);
+    scrollToTop();
   };
 
   const handleDelete = async (id) => {
@@ -85,6 +97,18 @@ export default function AdminProducts() {
       setError('Failed to delete product');
     }
   };
+
+  const pageNumbers = useMemo(() => {
+    const totalPages = pagination.pages || 0;
+    if (totalPages <= 1) return [];
+    const range = [];
+    const start = Math.max(1, page - 2);
+    const end = Math.min(totalPages, page + 2);
+    for (let i = start; i <= end; i += 1) {
+      range.push(i);
+    }
+    return range;
+  }, [pagination.pages, page]);
 
   if (loading) {
     return <div className={`${styles.container} ${styles.loading}`}>Loading...</div>;
@@ -223,6 +247,7 @@ export default function AdminProducts() {
               <button
                 className={`${styles.buttonBase} ${styles.btn} ${styles.btnDanger}`}
                 onClick={() => setPendingDeleteId(product._id)}
+                data-scroll-top="false"
               >
                 Delete
               </button>
@@ -230,6 +255,36 @@ export default function AdminProducts() {
           </div>
         ))}
       </div>
+
+      {pagination.pages > 1 && (
+        <div className={styles.pagination}>
+          <button
+            onClick={() => setPage(page - 1)}
+            disabled={page === 1}
+            className={`${styles.buttonBase} ${styles.paginationButton}`}
+          >
+            Previous
+          </button>
+          {pageNumbers.map((pageNumber) => (
+            <button
+              key={pageNumber}
+              onClick={() => setPage(pageNumber)}
+              className={`${styles.buttonBase} ${styles.paginationButton}${
+                pageNumber === page ? ` ${styles.paginationButtonActive}` : ''
+              }`}
+            >
+              {pageNumber}
+            </button>
+          ))}
+          <button
+            onClick={() => setPage(page + 1)}
+            disabled={page === pagination.pages}
+            className={`${styles.buttonBase} ${styles.paginationButton}`}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {pendingDeleteId && (
         <div className={styles.modalBackdrop} role="presentation">
@@ -253,6 +308,7 @@ export default function AdminProducts() {
                 type="button"
                 className={`${styles.buttonBase} ${styles.btn} ${styles.btnGhost}`}
                 onClick={() => setPendingDeleteId(null)}
+                data-scroll-top="false"
               >
                 Cancel
               </button>
@@ -263,6 +319,7 @@ export default function AdminProducts() {
                   handleDelete(pendingDeleteId);
                   setPendingDeleteId(null);
                 }}
+                data-scroll-top="false"
               >
                 Delete
               </button>

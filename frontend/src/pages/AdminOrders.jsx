@@ -75,7 +75,7 @@ export default function AdminOrders() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-scroll-top="false">
       <div className={`${styles.pageHeader} ${styles.compact}`}>
         <div>
           <p className={styles.eyebrow}>Admin</p>
