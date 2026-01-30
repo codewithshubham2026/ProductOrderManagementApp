@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import NavBar from './components/NavBar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -16,10 +16,37 @@ import AIAssistant from './pages/AIAssistant';
 import Footer from './components/Footer';
 import styles from './styles/ui.module.css';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
+  useEffect(() => {
+    const handleGlobalButtonClick = (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('[data-scroll-top="false"]')) return;
+      if (target.closest('button, [role="button"]')) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+
+    document.addEventListener('click', handleGlobalButtonClick);
+    return () => {
+      document.removeEventListener('click', handleGlobalButtonClick);
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <div className={styles.appShell}>
           <NavBar />
           <main className={styles.mainContent}>
