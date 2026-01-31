@@ -49,6 +49,28 @@ async function createOrder(userId, { items, shippingAddress }) {
   });
 
   // Populate product details for response
+  // The following lines use Mongoose's `populate` method on the `order` document.
+  // When an order is created, its 'items' field contains an array of subdocuments,
+  // each referencing a product by its ObjectId. Similarly, the 'user' field contains
+  // just a reference to the user's ObjectId.
+  // 
+  // By using `populate`, we replace these ObjectIds with actual data from the related
+  // collections—Product and User. Here’s an explanation of each line:
+  //
+  // 1. await order.populate('items.product', 'name image');
+  //    - This populates the 'product' field in each subdocument within the 'items' array.
+  //    - Only the 'name' and 'image' fields of each product are loaded from the database and attached
+  //      to the order document. This makes it easier to return complete and user-friendly order
+  //      information (such as the product’s name and image) in the API response, rather than just product IDs.
+  //
+  // 2. await order.populate('user', 'name email');
+  //    - This populates the 'user' field, replacing the reference (ObjectId) to the User document with
+  //      the actual user's 'name' and 'email'. Again, this is useful to make the order information richer
+  //      and more explicit in the response.
+  //
+  // Essentially, these two lines ensure the returned order object contains not just references, but also
+  // basic details about the user and the products in the order, all loaded from their respective collections.
+
   await order.populate('items.product', 'name image');
   await order.populate('user', 'name email');
 
