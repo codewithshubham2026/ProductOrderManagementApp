@@ -1,71 +1,117 @@
+// Import React hooks: useState for state, useEffect for side effects, useMemo for optimization, useRef for DOM references
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+// Import configured axios instance for API calls
 import api from '../api';
+// Import ProductCard component to display individual products
 import ProductCard from '../components/ProductCard';
+// Import Input component for search field
 import Input from '../components/Input';
+// Import Select component for category and sort dropdowns
 import Select from '../components/Select';
+// Import CSS module styles
 import styles from '../styles/ui.module.css';
 
+// Products component: main product listing page with search, filter, and pagination
 export default function Products() {
+  // State to store list of products from API
   const [products, setProducts] = useState([]);
+  // State to store available product categories
   const [categories, setCategories] = useState([]);
+  // State for search query input value
   const [search, setSearch] = useState('');
+  // State for selected category filter (empty string means all categories)
   const [selectedCategory, setSelectedCategory] = useState('');
+  // State for sort option (featured, price-low, price-high, name-asc, name-desc)
   const [sortBy, setSortBy] = useState('featured');
+  // State for current page number (for pagination)
   const [page, setPage] = useState(1);
+  // State to store pagination metadata (total pages, current page, etc.)
   const [pagination, setPagination] = useState({});
+  // State to track if products are being fetched (for loading indicator)
   const [loading, setLoading] = useState(true);
+  // State to store error messages
   const [error, setError] = useState('');
+  // Ref to access search input DOM element (for focusing after clearing search)
   const searchInputRef = useRef(null);
 
+  // useEffect to fetch categories once when component mounts
+  // Empty dependency array [] means this runs only once on mount
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // useEffect to fetch products whenever search, category, or page changes
+  // This ensures products are re-fetched when filters change
   useEffect(() => {
     fetchProducts();
-  }, [search, selectedCategory, page]);
+  }, [search, selectedCategory, page]); // Dependencies: re-run when any of these change
 
+  // Function to fetch all available product categories from API
   const fetchCategories = async () => {
     try {
+      // Make GET request to categories endpoint
       const { data } = await api.get('/api/products/categories');
+      // Update categories state with fetched data
       setCategories(data.categories);
     } catch (err) {
+      // Log error to console (non-critical, so we don't show error to user)
       console.error('Failed to fetch categories:', err);
     }
   };
 
+  // Function to fetch products from API with current filters and pagination
   const fetchProducts = async () => {
+    // Set loading state to true to show loading indicator
     setLoading(true);
+    // Clear any previous error messages
     setError('');
     try {
-      const params = { page, limit: 12 };
+      // Build query parameters object
+      const params = { page, limit: 12 }; // Always include page and limit
+      // Add search parameter if search query exists
       if (search) params.search = search;
+      // Add category parameter if category is selected
       if (selectedCategory) params.category = selectedCategory;
 
+      // Make GET request to products endpoint with query parameters
+      // Backend handles search and category filtering server-side
       const { data } = await api.get('/api/products', { params });
+      // Update products state with fetched products
       setProducts(data.products);
+      // Update pagination state with pagination metadata from backend
       setPagination(data.pagination);
     } catch (err) {
+      // If request fails, set error message to display to user
       setError('Failed to load products');
     } finally {
+      // Always set loading to false after request completes
       setLoading(false);
     }
   };
 
+  // Handler for search input changes
   const handleSearch = (e) => {
+    // Update search state with input value
     setSearch(e.target.value);
+    // Reset to page 1 when search changes (new search starts from first page)
     setPage(1);
   };
 
+  // Handler for category filter changes
   const handleCategoryChange = (value) => {
+    // Update selected category state
     setSelectedCategory(value);
+    // Reset to page 1 when category changes (new filter starts from first page)
     setPage(1);
   };
+  // Create options array for category Select dropdown
+  // First option is "All Categories" with empty value, then map categories to options
   const categoryOptions = [
     { value: '', label: 'All Categories' },
     ...categories.map((cat) => ({ value: cat, label: cat }))
   ];
 
+  // Create options array for sort Select dropdown
   const sortOptions = [
     { value: 'featured', label: 'Featured' },
     { value: 'price-low', label: 'Price: Low to High' },
@@ -74,6 +120,7 @@ export default function Products() {
     { value: 'name-desc', label: 'Name: Z to A' }
   ];
 
+  // Function to reset all filters to default values
   const clearFilters = () => {
     setSearch('');
     setSelectedCategory('');
@@ -81,21 +128,30 @@ export default function Products() {
     setPage(1);
   };
 
+  // useMemo: memoize sorted products to avoid re-sorting on every render
+  // Only re-sorts when products or sortBy changes (performance optimization)
   const sortedProducts = useMemo(() => {
+    // Create a copy of products array (don't mutate original)
     const sorted = [...products];
+    // Switch statement to apply different sorting based on sortBy value
     switch (sortBy) {
+      // Sort by price ascending (low to high)
       case 'price-low':
         return sorted.sort((a, b) => a.price - b.price);
+      // Sort by price descending (high to low)
       case 'price-high':
         return sorted.sort((a, b) => b.price - a.price);
+      // Sort by name alphabetically (A to Z)
       case 'name-asc':
         return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      // Sort by name reverse alphabetically (Z to A)
       case 'name-desc':
         return sorted.sort((a, b) => b.name.localeCompare(a.name));
+      // Default: return products in original order (featured/unsorted)
       default:
         return sorted;
     }
-  }, [products, sortBy]);
+  }, [products, sortBy]); // Dependencies: re-compute when products or sortBy changes
 
   const pageNumbers = useMemo(() => {
     const totalPages = pagination.pages || 0;

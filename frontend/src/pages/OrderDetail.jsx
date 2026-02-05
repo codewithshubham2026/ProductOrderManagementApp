@@ -1,34 +1,52 @@
+// Import React hooks: useState for state, useEffect for side effects
 import React, { useState, useEffect } from 'react';
+// Import React Router hooks: useParams to get URL parameters, useNavigate for navigation
 import { useParams, useNavigate } from 'react-router-dom';
+// Import configured axios instance for API calls
 import api from '../api';
+// Import CSS module styles
 import styles from '../styles/ui.module.css';
 
+// OrderDetail component: displays detailed information about a single order
 export default function OrderDetail() {
+  // Extract order ID from URL parameters (e.g., /orders/123 -> id = "123")
   const { id } = useParams();
+  // Get navigate function for programmatic navigation
   const navigate = useNavigate();
+  // State to store order data fetched from API
   const [order, setOrder] = useState(null);
+  // State to track if order is being fetched (for loading indicator)
   const [loading, setLoading] = useState(true);
+  // State to store error messages
   const [error, setError] = useState('');
 
+  // useEffect to fetch order when component mounts or when id changes
   useEffect(() => {
     fetchOrder();
-  }, [id]);
+  }, [id]); // Dependency: re-fetch if order ID changes
 
+  // Function to fetch order details from API
   const fetchOrder = async () => {
     try {
+      // Make GET request to fetch order by ID
       const { data } = await api.get(`/api/orders/${id}`);
+      // Update order state with fetched data
       setOrder(data.order);
     } catch (err) {
+      // If order not found or request fails, set error message
       setError('Order not found');
     } finally {
+      // Always set loading to false after request completes
       setLoading(false);
     }
   };
 
+  // Show loading indicator while fetching order
   if (loading) {
     return <div className={`${styles.container} ${styles.loading}`}>Loading...</div>;
   }
 
+  // Show error message if order not found or error occurred
   if (error || !order) {
     return (
       <div className={styles.container}>
@@ -39,6 +57,7 @@ export default function OrderDetail() {
     );
   }
 
+  // Map order status values to corresponding CSS classes for styling
   const statusClassMap = {
     pending: styles.statusPending,
     processing: styles.statusProcessing,
@@ -47,6 +66,8 @@ export default function OrderDetail() {
     cancelled: styles.statusCancelled
   };
 
+  // Function to get the appropriate CSS class for a given order status
+  // Returns base statusBadge class plus the status-specific class
   const getStatusClass = (status) => {
     return `${styles.statusBadge} ${statusClassMap[status] || ''}`;
   };

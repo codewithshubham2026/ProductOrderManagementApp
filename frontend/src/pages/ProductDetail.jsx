@@ -1,33 +1,54 @@
+// Import React hooks: useState for state, useEffect for side effects
 import React, { useState, useEffect } from 'react';
+// Import React Router hooks: useParams to get URL parameters, useNavigate for navigation
 import { useParams, useNavigate } from 'react-router-dom';
+// Import configured axios instance for API calls
 import api from '../api';
+// Import CSS module styles
 import styles from '../styles/ui.module.css';
 
+// ProductDetail component: displays detailed information about a single product
 export default function ProductDetail() {
+  // Extract product ID from URL parameters (e.g., /products/123 -> id = "123")
   const { id } = useParams();
+  // Get navigate function for programmatic navigation
   const navigate = useNavigate();
+  // State to store product data fetched from API
   const [product, setProduct] = useState(null);
+  // State for quantity input value (default: 1)
   const [quantity, setQuantity] = useState(1);
+  // State to track if product is being fetched (for loading indicator)
   const [loading, setLoading] = useState(true);
+  // State to store error messages
   const [error, setError] = useState('');
+  // State to store success messages (currently unused but available)
   const [success, setSuccess] = useState('');
 
+  // useEffect to fetch product when component mounts or when id changes
   useEffect(() => {
     fetchProduct();
-  }, [id]);
+  }, [id]); // Dependency: re-fetch if product ID changes
 
+  // Function to fetch product details from API
   const fetchProduct = async () => {
     try {
+      // Make GET request to fetch product by ID
       const { data } = await api.get(`/api/products/${id}`);
+      // Update product state with fetched data
       setProduct(data.product);
     } catch (err) {
+      // If product not found or request fails, set error message
       setError('Product not found');
     } finally {
+      // Always set loading to false after request completes
       setLoading(false);
     }
   };
 
+  // Handler for "Add to Order" button click
   const handleAddToOrder = () => {
+    // Navigate to create order page and pass product info via route state
+    // This allows CreateOrder component to automatically add this product to cart
     navigate('/orders/create', {
       state: { productId: id, quantity: parseInt(quantity) }
     });

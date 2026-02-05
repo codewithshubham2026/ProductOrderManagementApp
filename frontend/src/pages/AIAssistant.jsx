@@ -1,44 +1,72 @@
+// Import React hooks: useState for state, useEffect for side effects
 import React, { useState, useEffect } from 'react';
+// Import configured axios instance for API calls
 import api from '../api';
+// Import Select component for product selection dropdown
 import Select from '../components/Select';
+// Import CSS module styles
 import styles from '../styles/ui.module.css';
 
+// AIAssistant component: AI-powered product assistant for answering questions
 export default function AIAssistant() {
+  // State for user's question input
   const [question, setQuestion] = useState('');
+  // State for selected product ID (optional, for product-specific questions)
   const [productId, setProductId] = useState('');
+  // State to store list of products for dropdown selection
   const [products, setProducts] = useState([]);
+  // State to store AI response text
   const [response, setResponse] = useState('');
+  // State to track if AI request is in progress (for loading indicator)
   const [loading, setLoading] = useState(false);
+  // State to store error messages
   const [error, setError] = useState('');
 
+  // useEffect to fetch products when component mounts
+  // Products are needed for the optional product selection dropdown
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, []); // Empty dependency array: run only once on mount
 
+  // Function to fetch products from API for dropdown selection
   const fetchProducts = async () => {
     try {
+      // Make GET request to fetch products (limit 100 for dropdown)
       const { data } = await api.get('/api/products', { params: { limit: 100 } });
+      // Update products state with fetched products
       setProducts(data.products);
     } catch (err) {
+      // Log error to console (non-critical, so we don't show error to user)
       console.error('Failed to fetch products:', err);
     }
   };
 
+  // Form submission handler: sends question to AI endpoint
   const handleSubmit = async (e) => {
+    // Prevent default form submission behavior (page refresh)
     e.preventDefault();
+    // Clear any previous error messages
     setError('');
+    // Clear any previous response
     setResponse('');
+    // Set loading state to true to show loading indicator
     setLoading(true);
 
     try {
+      // Make POST request to AI ask endpoint
+      // Send question and optional productId (if selected)
       const { data } = await api.post('/api/ai/ask', {
         question,
+        // Only send productId if one is selected, otherwise send undefined
         productId: productId || undefined
       });
+      // Update response state with AI's answer
       setResponse(data.response);
     } catch (err) {
+      // If request fails, display error message from backend or default message
       setError(err.response?.data?.message || 'Failed to get AI response');
     } finally {
+      // Always set loading to false after request completes
       setLoading(false);
     }
   };

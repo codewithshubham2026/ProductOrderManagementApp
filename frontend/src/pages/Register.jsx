@@ -1,32 +1,60 @@
+// Import React hooks: useState for component state, useContext for accessing context
 import React, { useState, useContext } from 'react';
+// Import React Router hooks: useNavigate for programmatic navigation, Link for navigation links
 import { useNavigate, Link } from 'react-router-dom';
+// Import AuthContext to access login function
 import { AuthContext } from '../context/AuthContext';
+// Import configured axios instance for API calls
 import api from '../api';
+// Import reusable Input component
 import Input from '../components/Input';
+// Import CSS module styles
 import styles from '../styles/ui.module.css';
 
+// Register component: handles new user registration
 export default function Register() {
+  // State for name input value (controlled input)
   const [name, setName] = useState('');
+  // State for email input value (controlled input)
   const [email, setEmail] = useState('');
+  // State for password input value (controlled input)
   const [password, setPassword] = useState('');
+  // State to toggle password visibility (show/hide password)
   const [showPassword, setShowPassword] = useState(false);
+  // State to store and display error messages
   const [error, setError] = useState('');
+  // State to track if registration request is in progress (for loading indicator)
   const [loading, setLoading] = useState(false);
+  // Get login function from AuthContext to update global auth state after registration
   const { login } = useContext(AuthContext);
+  // Get navigate function from React Router for programmatic navigation
   const navigate = useNavigate();
 
+  // Form submission handler: called when user submits registration form
   const handleSubmit = async (e) => {
+    // Prevent default form submission behavior (page refresh)
     e.preventDefault();
+    // Clear any previous error messages
     setError('');
+    // Set loading state to true to show loading indicator
     setLoading(true);
 
+    // Try to register new user with backend
     try {
+      // Make POST request to register endpoint with name, email, and password
+      // Backend validates data and creates new user account
       const { data } = await api.post('/api/auth/register', { name, email, password });
+      // If successful, automatically log in the new user
+      // This saves token and sets user state (same as login flow)
       login(data.token, data.user);
+      // Navigate to home page (products listing) after successful registration
       navigate('/');
     } catch (err) {
+      // If registration fails, display error message from backend or default message
+      // Common errors: email already exists, validation errors
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
+      // Always set loading to false after request completes (success or failure)
       setLoading(false);
     }
   };
